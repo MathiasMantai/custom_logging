@@ -10,7 +10,6 @@ func GetCurrentTime(timeZone string, layout string) (string, error) {
         return "", err
     }
 
-    // Convert the local time to German time
-    germanTime := time.Now().In(location).Format(layout)
-    return germanTime, nil
+    curTime := time.Now().In(location).Format(layout)
+    return curTime, nil
 }

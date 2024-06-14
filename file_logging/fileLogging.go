@@ -6,15 +6,20 @@ import (
 	"os"
 	"strings"
 	"time"
+	"errors"
 )
 
 type FileLogger struct {
+	TimeZone string
+	TimeLayout string
+	BeforeTime string
+	AfterTime string
 	KeepOldest int32
 	DirPath    string
 	LogPrefix  string
 }
 
-func (l *FileLogger) LogMsgs(msg string) bool {
+func (l *FileLogger) LogMsg(msg string) bool {
 	encodedMsg := []byte(msg)
 	writeError := os.WriteFile(l.DirPath, encodedMsg, 0644)
 
@@ -25,7 +30,7 @@ func (l *FileLogger) LogRotate() bool {
 	files, readDirError := os.ReadDir(l.DirPath)
 
 	if readDirError != nil {
-		panic("x> error ")
+		panic(readDirError)
 	}
 
 	for _, file := range files {
@@ -49,23 +54,24 @@ func (l *FileLogger) LogRotate() bool {
 	return true
 }
 
-func (l *FileLogger) InitLogDir() {
+func (l *FileLogger) InitLogDir() error {
+
+	if l.DirPath == "" {
+        return errors.New("logging directory has not been specified")
+    }
+
 	createDirError := os.Mkdir(l.DirPath, 0755)
 	if createDirError != nil {
 		fmt.Println("=> Directory exists already. Skipping...")
 	} else {
 		fmt.Println("=> Log Directory created...")
 	}
+
+	return nil
 }
 
-func CreateFileLogger(keppOldest int32, dirPath string, logPrefix string) FileLogger {
-	if logPrefix == "" {
-		logPrefix = "log_"
-	}
-
-	return FileLogger{
-		keppOldest,
-		dirPath,
-		logPrefix,
-	}
+func NewFileLogger() *FileLogger {
+	var logger FileLogger
+	logger.LogPrefix = "log_"
+	return &logger
 }
