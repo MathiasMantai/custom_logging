@@ -1,4 +1,4 @@
-package custom_logging
+package file_logging
 
 import (
 	// "archive/zip"
@@ -8,20 +8,20 @@ import (
 	"time"
 )
 
-type Logger struct {
+type FileLogger struct {
 	KeepOldest int32
 	DirPath    string
 	LogPrefix  string
 }
 
-func (l *Logger) LogMsgs(msg string) bool {
+func (l *FileLogger) LogMsgs(msg string) bool {
 	encodedMsg := []byte(msg)
 	writeError := os.WriteFile(l.DirPath, encodedMsg, 0644)
 
 	return writeError == nil
 }
 
-func (l *Logger) LogRotate() bool {
+func (l *FileLogger) LogRotate() bool {
 	files, readDirError := os.ReadDir(l.DirPath)
 
 	if readDirError != nil {
@@ -32,7 +32,7 @@ func (l *Logger) LogRotate() bool {
 		fmt.Println(file.Name())
 		logName := file.Name()
 		logTime := strings.Replace(logName, l.LogPrefix, "", -1)
-		tmpTime, parseTimeError := time.Parse("2024-12-01 13:25:00", logTime)
+		tmpTime, parseTimeError := time.Parse("01.12.2006 13:25", logTime)
 
 		if parseTimeError != nil {
 			panic(parseTimeError)
@@ -49,7 +49,7 @@ func (l *Logger) LogRotate() bool {
 	return true
 }
 
-func (l *Logger) InitLogDir() {
+func (l *FileLogger) InitLogDir() {
 	createDirError := os.Mkdir(l.DirPath, 0755)
 	if createDirError != nil {
 		fmt.Println("=> Directory exists already. Skipping...")
@@ -58,12 +58,12 @@ func (l *Logger) InitLogDir() {
 	}
 }
 
-func CreateLogger(keppOldest int32, dirPath string, logPrefix string) Logger {
+func CreateFileLogger(keppOldest int32, dirPath string, logPrefix string) FileLogger {
 	if logPrefix == "" {
 		logPrefix = "log_"
 	}
 
-	return Logger{
+	return FileLogger{
 		keppOldest,
 		dirPath,
 		logPrefix,
